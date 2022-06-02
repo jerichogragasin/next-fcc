@@ -5,6 +5,9 @@ import {
     PortableText
 } from '../../lib/sanity';
 
+import  { 
+    useState 
+} from 'react';
 
 const recipeQuery = `*[_type == "recipe" && slug.current == $slug][0] {
     _id,
@@ -26,12 +29,30 @@ const recipeQuery = `*[_type == "recipe" && slug.current == $slug][0] {
 
 export default function OneRecipe({data}) {
     const recipe = data.recipe;
-    console.log(recipe.instructions)
+    const { likes , setLikes } = useState(data?.recipe?.likes);
+
+    console.log(JSON.stringify(recipe._id));
+    const addLike = async () => {
+        const res = await fetch("/api/handle-like", {
+            method: "POST",
+            body: JSON.stringify({
+                _id: recipe._id
+            })
+        }).catch((error)=>console.log(error))
+
+        const data = await res.json();
+
+        setLikes(data.likes);
+    } 
+
     return(
         <article className='recipe'>
             <h1>
                 {recipe.name}
             </h1>
+            <button className='like-button' onClick={addLike}>
+                {likes} ❤️
+            </button>
             <main className='content'>
                 <img src={urlFor(recipe?.mainImage).url()} alt={recipe.name} />
                 <div className='breakdown'>
@@ -65,6 +86,7 @@ export async function getStaticPaths() {
             }
         }`
     );
+
     return {
         //returns the path for it to be usable
         paths,
