@@ -9,6 +9,10 @@ import  {
     useState 
 } from 'react';
 
+import { 
+    useRouter 
+} from 'next/router';
+
 const recipeQuery = `*[_type == "recipe" && slug.current == $slug][0] {
     _id,
     name,
@@ -27,11 +31,23 @@ const recipeQuery = `*[_type == "recipe" && slug.current == $slug][0] {
     likes
 }`;
 
-export default function OneRecipe({data}) {
-    const recipe = data.recipe;
-    const { likes , setLikes } = useState(data?.recipe?.likes);
+export default function OneRecipe({data, preview}) {
+    const router = useRouter();
+    const [ likes , setLikes ] = useState(data?.recipe?.likes);
+    
+    const {data: recipe} = usePreviewSubscription(
+        recipeQuery,
+        {
+            params: {
+                slug: data.recipe?.slug.current
+            },
+            initialData: data,
+            enabled: preview
+        }
+    )
+    
+    if(!data)return <div>Loading...</div>;
 
-    console.log(JSON.stringify(recipe._id));
     const addLike = async () => {
         const res = await fetch("/api/handle-like", {
             method: "POST",
@@ -54,10 +70,10 @@ export default function OneRecipe({data}) {
                 {likes} ❤️
             </button>
             <main className='content'>
-                <img src={urlFor(recipe?.mainImage).url()} alt={recipe.name} />
+                <img src={urlFor(data?.recipe?.mainImage).url()} alt={data?.recipe?.name} />
                 <div className='breakdown'>
                     <ul className='ingredients'>
-                        {recipe.ingredient?.map((ingredient)=> (
+                        {data?.recipe?.ingredient?.map((ingredient)=> (
                             <li className='ingredient' key={ingredient._key}>
                                 {ingredient?.wholeNumber}
                                 {ingredient?.fraction}
@@ -98,14 +114,15 @@ export async function getStaticProps({params}) {
     const {slug} = params;
     const recipe = await sanityClient.fetch(
         recipeQuery,
-        {slug}
+        {slug},
     )
 
     return {
         props: {
             data: {
                 recipe
-            }
+            },
+            preview: true
         }
     };
 }
