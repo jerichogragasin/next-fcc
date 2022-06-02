@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
+
 //sanity client with prebuilt configs
 import {
   sanityClient,
@@ -17,6 +18,7 @@ const recipesQuery = `*[_type == "recipe"] {
 
 
 export default function Home({recipes}) {
+  
   return (
     <div>
       <Head>
