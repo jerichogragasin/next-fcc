@@ -103,6 +103,14 @@ export default {
 
             }]
 
+        },
+        {
+            name: "likes",
+            title: "Likes",
+            type: "number"
         }
-    ]
+    ],
+    initalValue: {
+        likes: 0,
+    }
 }
